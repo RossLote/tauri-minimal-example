@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,shrink-to-fit=no"
+    />
+    <meta name="theme-color" content="#000000" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico" />
+    <title>Minimal reporoduction</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root">
+      <h1>This is a test</h1>
+    </div>
+    <script>
+(function() {
+  function progressLoader(urls, callback) {
+    var i;
+    var results = [];
+    var resultCount = 0;
+    var progressEvents = [];
+    var progress = document.createElement('progress');
+    progress.className = 'progress-indicator';
+    document.body.appendChild(progress);
+
+    function updateProgress() {
+      var j, max = 0,
+        value = 0;
+      for (j = 0; j < progressEvents.length; j++) {
+        if (progressEvents[j]) {
+          max += progressEvents[j].total;
+          value += progressEvents[j].loaded;
+        }
+        progress.max = max;
+        progress.value = value;
+      }
+    }
+
+    function load(url, index) {
+      var req = new XMLHttpRequest();
+      req.onprogress = function (event) {
+        if (event.lengthComputable) {
+          progressEvents[index] = event;
+          updateProgress();
+        }
+      };
+      req.onreadystatechange = function () {
+        if (req.readyState == 4) {
+          results[index] = req.responseText;
+          resultCount++;
+          if (resultCount === urls.length) {
+            document.body.removeChild(progress);
+            document.documentElement.className += ' loading';
+            callback.apply(this, results);
+          }
+        }
+      };
+      req.open('GET', url, true);
+      req.send();
+    }
+    for (i = 0; i < urls.length; i++) {
+      load(urls[i], i);
+    }
+  }
+  progressLoader(['player.js', 'module.json'], function (script, jsonData) {
+    var data = JSON.parse(jsonData);
+    eval.call(window, script);
+  });
+})()
+    </script>
+  </body>
